@@ -7,6 +7,7 @@ from config import *
 from database import ImageDB
 from utils.find_logo import find_logo
 from views.search_window import LineSearchWindow, PoleSearchWindow
+import subprocess
 
 BG_MAIN = "#FFFFFF" 
 THUMBNAIL_SIZE = (1000, 640)
@@ -30,6 +31,16 @@ MARKUP_WIDTH_DEFAULT = 4
 
 # ---------------- Main Window ----------------
 class MainWindow(tk.Tk):
+    
+    def sync_images(self):
+
+        try:
+            subprocess.run(["python", "sync_images.py"], check=True)
+            print("sync images function fired")
+            messagebox.showinfo("Sync Complete", "Images synced from PostgreSQL.")
+        except Exception as e:
+            messagebox.showerror("Sync Error", str(e))
+    
     def __init__(self):
         super().__init__()
         self.title("LECO — Drone Image Viewer")
@@ -89,7 +100,7 @@ class MainWindow(tk.Tk):
         rightb = tk.Frame(bottom, bg=BG_MAIN)
         rightb.pack(side=tk.RIGHT)
 
-        ttk.Button(leftb, text="Import Folder", style="Accent.TButton", command=self.on_import_folder).pack(side=tk.LEFT, padx=6, pady=6)
+        ttk.Button(leftb, text="Sync Images", style="Accent.TButton",  command=self.sync_images).pack(side=tk.LEFT, padx=6, pady=6)
         ttk.Button(leftb, text="Load DB", style="Accent.TButton", command=self.on_load_db).pack(side=tk.LEFT, padx=6, pady=6)
         ttk.Button(leftb, text="Clean Duplicates", style="Accent.TButton", command=self.on_clean_duplicates).pack(side=tk.LEFT, padx=6, pady=6)
 
@@ -125,14 +136,7 @@ class MainWindow(tk.Tk):
             self.status_var.set(f"DB: {os.path.basename(new)}")
 
     def on_import_folder(self):
-        """
-        NEW BEHAVIOUR:
-        - User selects a ROOT folder.
-        - If it has subfolders, each subfolder is treated as either:
-            - LINE section folder:  P01_P02  (start_pole=P01, end_pole=P02)
-            - POLE folder:         P01      (start_pole=P01, end_pole=NULL)
-        - If no subfolders, fall back to old behaviour (treat selected folder itself).
-        """
+       
         if self._import_lock:
             messagebox.showinfo("Import in progress", "An import is already running. Please wait.")
             return
@@ -216,13 +220,13 @@ class MainWindow(tk.Tk):
             seq_num = seq_counters[key]
 
             path = os.path.join(folder, fname)
-            # skip if this filepath already exists
-            cur.execute("SELECT COUNT(1) FROM images WHERE filepath = ?", (path,))
+            # skip if this file_hash already exists
+            cur.execute("SELECT COUNT(1) FROM images WHERE file_hash = ?", (path,))
             if cur.fetchone()[0] > 0:
                 skipped += 1
             else:
                 cur.execute("""
-                    INSERT INTO images (filename, filepath, start_pole, end_pole, seq_num, timestamp, notes)
+                    INSERT INTO images (filename, file_hash, start_pole, end_pole, seq_num, timestamp, notes)
                     VALUES (?, ?, ?, ?, ?, datetime('now'), ?)
                 """, (fname, path, start, end, seq_num, None))
                 inserted += 1
@@ -244,10 +248,10 @@ class MainWindow(tk.Tk):
     def on_clean_duplicates(self):
         ans = messagebox.askyesno(
             "Clean duplicates",
-            "This will remove duplicate DB rows having the same filepath (keeps first). Continue?"
+            "This will remove duplicate DB rows having the same file_hash (keeps first). Continue?"
         )
         if not ans:
             return
-        removed = self.db.clean_duplicate_filepaths()
+        removed = self.db.clean_duplicate_file_hashs()
         messagebox.showinfo("Clean Duplicates", f"Removed {removed} duplicate rows (if any).")
         self.status_var.set(f"Removed {removed} duplicates.")

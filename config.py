@@ -1,8 +1,5 @@
-DB_CONFIG = {
-    "host": "localhost",     
-    "database": "drone_image_system",
-    "user": "postgres",
-    "password": "admin",
-    "port": 5432
-}
+import os
 
+BASE_DIR = os.path.dirname(__file__)
+
+DB_PATH = os.path.join(BASE_DIR, "images.db")

@@ -5,6 +5,24 @@ from config import *
 from database import ImageDB
 from .viewer_window import ViewerWindow
 
+BG_MAIN = "#FFFFFF" 
+# Fonts
+FONT_TITLE = ("Segoe UI", 16, "bold")
+FONT_CARD = ("Segoe UI", 14, "bold")
+FONT_NORMAL = ("Segoe UI", 10)
+FONT_SMALL = ("Segoe UI", 9)
+
+# Colors (white + purple scheme)
+BG_MAIN = "#FFFFFF"            # overall background (white)
+BG_PANEL = "#F1E8FF"           # soft lavender panel
+ACCENT = "#5A2E9D"             # deep purple (primary accent)
+ACCENT_LIGHT = "#7F4FC3"       # lighter purple
+TEXT_DARK = "#222222"          # dark text
+MUTED = "#777777"              # muted text
+CANVAS_BG = "#FBF9FF"          # canvas background (very light lavender)
+MARKUP_COLOR_DEFAULT = "#FF2E63"
+MARKUP_WIDTH_DEFAULT = 4
+
 # ---------------- Line / Pole Search Windows ----------------
 class LineSearchWindow(tk.Toplevel):
     def __init__(self, master, db: ImageDB):

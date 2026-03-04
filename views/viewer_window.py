@@ -5,9 +5,39 @@ import csv
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, simpledialog, colorchooser
 from PIL import Image, ImageTk, ImageDraw, ImageFont
-
+import requests
+from io import BytesIO
 from config import *
 from utils import reveal_file, create_tooltip
+
+BG_MAIN = "#FFFFFF" 
+# Fonts
+FONT_TITLE = ("Segoe UI", 16, "bold")
+FONT_CARD = ("Segoe UI", 14, "bold")
+FONT_NORMAL = ("Segoe UI", 10)
+FONT_SMALL = ("Segoe UI", 9)
+
+# Colors (white + purple scheme)
+BG_MAIN = "#FFFFFF"            # overall background (white)
+BG_PANEL = "#F1E8FF"           # soft lavender panel
+ACCENT = "#5A2E9D"             # deep purple (primary accent)
+ACCENT_LIGHT = "#7F4FC3"       # lighter purple
+TEXT_DARK = "#222222"          # dark text
+MUTED = "#777777"              # muted text
+CANVAS_BG = "#FBF9FF"          # canvas background (very light lavender)
+MARKUP_COLOR_DEFAULT = "#FF2E63"
+MARKUP_WIDTH_DEFAULT = 4
+
+
+def load_image_from_url(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return Image.open(BytesIO(response.content)).convert("RGBA")
+    except Exception as e:
+        print("Image load failed:", e)
+        return None
+
 
 class ViewerWindow(tk.Toplevel):
     def __init__(self, master, images, title="Image Viewer"):
@@ -201,17 +231,16 @@ class ViewerWindow(tk.Toplevel):
             return
         self.index = idx
         rec = self.images[idx]
-        path = rec['filepath']
-        if not os.path.exists(path):
+        url = rec['published_path']
+
+        img = load_image_from_url(url)
+
+        if img is None:
             self.clear_canvas()
-            self.info_text.insert(tk.END, f"Missing file: {path}")
+            self.info_text.insert(tk.END, f"Failed to load image from URL:\n{url}")
             return
-        try:
-            self.original_image = Image.open(path).convert("RGBA")
-        except Exception as e:
-            self.clear_canvas()
-            self.info_text.insert(tk.END, f"Failed to open: {e}")
-            return
+
+        self.original_image = img
 
         # load annotations from notes JSON if present
         self.annotations = []
@@ -713,7 +742,12 @@ class ViewerWindow(tk.Toplevel):
         self.thumb_images = []
         for i, rec in enumerate(self.images):
             try:
-                pil = Image.open(rec["filepath"]).convert("RGB")
+                pil = load_image_from_url(rec["published_path"])
+
+                if pil is None:
+                    continue
+
+                pil = pil.convert("RGB")
                 pil.thumbnail((120, 80), Image.LANCZOS)
                 tkimg = ImageTk.PhotoImage(pil)
                 self.thumb_images.append(tkimg)
