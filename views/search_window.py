@@ -2,9 +2,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 from config import *
-from database import ImageDB
+from dbOperations.database import ImageDB
 from .viewer_window import ViewerWindow
-
+from dbOperations.image_queries import get_images_around_pole
 BG_MAIN = "#FFFFFF" 
 # Fonts
 FONT_TITLE = ("Segoe UI", 16, "bold")
@@ -95,7 +95,7 @@ class PoleSearchWindow(tk.Toplevel):
         if not pole:
             messagebox.showerror("Input Error", "Please enter a Pole ID.")
             return
-        images = self.db.get_images_around_pole(pole)
+        images = get_images_around_pole(self.db, pole)
         if not images:
             messagebox.showinfo("No Results", f"No images found around pole: {pole}")
             return
