@@ -2,8 +2,26 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 from config import *
-from database import ImageDB
-from .viewer_window import ViewerWindow
+from dbOperations.database import ImageDB
+from views.viewer_window import ViewerWindow
+from dbOperations.image_queries import get_images_around_pole, get_images_between
+BG_MAIN = "#FFFFFF" 
+# Fonts
+FONT_TITLE = ("Segoe UI", 16, "bold")
+FONT_CARD = ("Segoe UI", 14, "bold")
+FONT_NORMAL = ("Segoe UI", 10)
+FONT_SMALL = ("Segoe UI", 9)
+
+# Colors (white + purple scheme)
+BG_MAIN = "#FFFFFF"            # overall background (white)
+BG_PANEL = "#F1E8FF"           # soft lavender panel
+ACCENT = "#5A2E9D"             # deep purple (primary accent)
+ACCENT_LIGHT = "#7F4FC3"       # lighter purple
+TEXT_DARK = "#222222"          # dark text
+MUTED = "#777777"              # muted text
+CANVAS_BG = "#FBF9FF"          # canvas background (very light lavender)
+MARKUP_COLOR_DEFAULT = "#FF2E63"
+MARKUP_WIDTH_DEFAULT = 4
 
 # ---------------- Line / Pole Search Windows ----------------
 class LineSearchWindow(tk.Toplevel):
@@ -41,7 +59,7 @@ class LineSearchWindow(tk.Toplevel):
         if not start or not end:
             messagebox.showerror("Input Error", "Please enter both Start Pole and End Pole.")
             return
-        images = self.db.get_images_between(start, end)
+        images = get_images_between(self.db,start, end)
         if not images:
             messagebox.showinfo("No Results", f"No images found for {start} → {end}.")
             return
@@ -73,11 +91,13 @@ class PoleSearchWindow(tk.Toplevel):
         self.geometry(f"{w}x{h}+{x}+{y}")
 
     def do_search(self):
+        print("searh function fired")
         pole = self.pole_var.get().strip()
+        print("pole", pole)
         if not pole:
             messagebox.showerror("Input Error", "Please enter a Pole ID.")
             return
-        images = self.db.get_images_around_pole(pole)
+        images = get_images_around_pole(self.db, pole)
         if not images:
             messagebox.showinfo("No Results", f"No images found around pole: {pole}")
             return
