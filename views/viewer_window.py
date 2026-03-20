@@ -5,10 +5,9 @@ import csv
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, simpledialog, colorchooser
 from PIL import Image, ImageTk, ImageDraw, ImageFont
-import requests
-from io import BytesIO
 from config import *
-from utils import reveal_file, create_tooltip
+from utils.reveal_file import reveal_file
+from utils.create_tooltip import create_tooltip
 
 BG_MAIN = "#FFFFFF" 
 # Fonts
@@ -29,13 +28,17 @@ MARKUP_COLOR_DEFAULT = "#FF2E63"
 MARKUP_WIDTH_DEFAULT = 4
 
 
-def load_image_from_url(url):
+def load_image(path):
     try:
-        response = requests.get(url)
-        response.raise_for_status()
-        return Image.open(BytesIO(response.content)).convert("RGBA")
+        if not os.path.exists(path):
+            print(" File not found:", path)
+            return None
+
+        print(" Loading:", path)
+        return Image.open(path).convert("RGBA")
+
     except Exception as e:
-        print("Image load failed:", e)
+        print(" Image load failed:", e)
         return None
 
 
@@ -231,13 +234,13 @@ class ViewerWindow(tk.Toplevel):
             return
         self.index = idx
         rec = self.images[idx]
-        url = rec['published_path']
+        path = rec['published_path']
 
-        img = load_image_from_url(url)
+        img = load_image(path)
 
         if img is None:
             self.clear_canvas()
-            self.info_text.insert(tk.END, f"Failed to load image from URL:\n{url}")
+            self.info_text.insert(tk.END, f"Failed to load image from path:\n{url}")
             return
 
         self.original_image = img
@@ -742,7 +745,7 @@ class ViewerWindow(tk.Toplevel):
         self.thumb_images = []
         for i, rec in enumerate(self.images):
             try:
-                pil = load_image_from_url(rec["published_path"])
+                pil = load_image(rec["published_path"])
 
                 if pil is None:
                     continue

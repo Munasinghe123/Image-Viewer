@@ -41,10 +41,8 @@ def get_images_around_pole(db, pole_id):
                start_pole, end_pole, sequence_no, category, notes
         FROM images
         WHERE pole_id = ?
-        OR start_pole = ?
-        OR end_pole = ?
         ORDER BY sequence_no ASC;
-    """, (pole_id, pole_id, pole_id))
+    """, (pole_id,))
 
     rows = cur.fetchall()
     conn.close()

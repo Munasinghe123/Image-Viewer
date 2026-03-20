@@ -15,5 +15,6 @@ def load_image_from_url(url):
         return img
 
     except Exception as e:
-        print("Image load failed:", e)
+        
+        print("from view helper,Image load failed:", e)
         return None
